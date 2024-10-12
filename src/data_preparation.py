@@ -25,12 +25,12 @@ class DataPrep(object):
         position_index = df_mtk.columns.get_loc('review_text')
         classification_label = df_mtk.columns[position_index+1: ]
         
-        # 给 classification_label 赋值 “others”标签
+        # 给 classification_label 赋值 “Others” 标签
         classification_label_list = list(classification_label)
-        classification_label_list.append('others')
+        classification_label_list.append('Others')
         classification_label_added = classification_label_list
 
-        # 合并这两个df_mtk 和 df_ak的review_text
+        # 合并这两个 df_mtk 和 df_ak 的 review_text
         review_df_mtk = df_mtk.loc[:, 'review_text'] # Series
         review_df_ak = df_ak.loc[:, 'review_text'] # Series
         df_review_text = pd.concat([review_df_mtk, review_df_ak], axis=0, ignore_index=True).to_frame(name='review_text') # dataframe
@@ -38,7 +38,7 @@ class DataPrep(object):
         return df_review_text, classification_label_added
         
     def sentence_embedding(self, df_review_text):
-        # 加载Sentence-Bert 模型来生成语义嵌入
+        # 加载 Sentence-Bert 模型来生成语义嵌入
         sentence_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
         df_review_text['embedding'] = df_review_text.apply(lambda x: sentence_model.encode(x))
         
@@ -47,5 +47,5 @@ class DataPrep(object):
 if __name__ == "__main__":
     data_prep = DataPrep()
     file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms支持/schema分类标签结果_MKT_AK数据.xlsx'
-    df_review_text = data_prep.load_data(file_path=file_path)
+    df_review_text, classification_label = data_prep.load_data(file_path=file_path)
     df_review_text_embedding = data_prep.sentence_embedding(df_review_text)
