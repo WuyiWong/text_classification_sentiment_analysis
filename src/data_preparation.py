@@ -3,6 +3,7 @@ import os
 import time
 from sentence_transformers import SentenceTransformer
 from datetime import datetime
+import tqdm
 
 '''
 首先对您的 .csv 数据集进行清理，确保 review_text 和相关的标签列有效。
@@ -40,12 +41,13 @@ class DataPrep(object):
     def sentence_embedding(self, df_review_text):
         # 加载 Sentence-Bert 模型来生成语义嵌入
         sentence_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-        df_review_text['embedding'] = df_review_text.apply(lambda x: sentence_model.encode(x))
+        tqdm.pandas(desc="Processing...")
+        df_review_text['embedding'] = df_review_text['review_text'].progress_apply(lambda x: sentence_model.encode(x)) 
         
-        return df_review_text_embedding
+        return df_review_text
     
 if __name__ == "__main__":
     data_prep = DataPrep()
-    file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms支持/schema分类标签结果_MKT_AK数据.xlsx'
+    file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/schema分类标签结果_MKT_AK数据.xlsx'
     df_review_text, classification_label = data_prep.load_data(file_path=file_path)
-    df_review_text_embedding = data_prep.sentence_embedding(df_review_text)
+    df_review_text = data_prep.sentence_embedding(df_review_text)
