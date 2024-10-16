@@ -17,14 +17,26 @@ class LlamaTextClassificationSentiment(ScriptBase):
         self.data_prep = data_prep
 
     def generate_classification_and_sentiment_v1(self, df_review, classification_label):
+        
+        
+        # 使用函数生成 prompt
+        prompt_tuning = PromptTuning()
+
+        examples = prompt_tuning.examples_prompt()
+        fixed_prompt_part = prompt_tuning.create_zero_shot_prompt(
+            review='',  # 不传入评论
+            categories=classification_label,
+            examples=examples
+        )
+
         # 遍历数据集中的每条评论，生成对应的 prompt 并进行推理
         for index, row in df_review.iterrows():
             review = row['review_text']
-            # embedding = row['embedding']
             
-            # 使用函数生成 prompt
-            prompt_tuning = PromptTuning()
-            final_prompt = prompt_tuning.create_zero_shot_prompt(review, classification_label)
+            # 在固定的提示部分后添加当前的评论
+            final_prompt = f"{fixed_prompt_part}\nReview: '{review}'\nOutputs:"
+            # final_prompt = prompt_tuning.create_zero_shot_prompt(\
+            #     review=review, categories=classification_label, examples=prompt_tuning.examples_prompt())
             
             # 将 prompt 转换为模型输入的格式
             inputs = self.tokenizer(final_prompt, return_tensors="pt")  # "pt"：返回 PyTorch 张量。
@@ -38,13 +50,23 @@ class LlamaTextClassificationSentiment(ScriptBase):
             self.info(f"Review {index + 1} Result: \n{decoded_output}\n")
     
     def generate_classification_and_sentiment_v2(self, df_review, classification_label):
+        
+        prompt_tuning = PromptTuning()
+        
+        # 在循环外生成分类和情感分析的示例
+        classification_examples = prompt_tuning.classification_examples()
+        sentiment_examples = prompt_tuning.sentiment_examples()
+
         # 遍历数据集中的每条评论，生成对应的 prompt 并进行推理
         for index, row in df_review.iterrows():
             review = row['review_text']
             
-            prompt_tuning = PromptTuning()
             # Step 1: 分类 (调用 create_classification_prompt 函数)
-            classification_prompt = prompt_tuning.create_classification_prompt(review, classification_label)    
+            classification_prompt = prompt_tuning.create_classification_prompt(
+                review=review,
+                categories=classification_label,
+                examples=classification_examples
+            )    
             
             # 将分类 prompt 转换为模型输入的格式
             inputs_classification = self.tokenizer(classification_prompt, return_tensors="pt")
@@ -58,8 +80,18 @@ class LlamaTextClassificationSentiment(ScriptBase):
             # 提取分类结果
             predicted_categories = prompt_tuning.extract_categories(decoded_classification_output)
 
+            # 如果未识别出任何类别，跳过情感分析
+            if not predicted_categories:
+                self.info(f"Review {index + 1} Classification Result:\n {decoded_classification_output}\n")
+                self.info(f"Review {index + 1} Sentiment Result:\n No categories identified.\n")
+                continue
+
             # Step 2: 情感分析 (调用 create_sentiment_prompt 函数)
-            sentiment_prompt = prompt_tuning.create_sentiment_prompt(review, predicted_categories)
+            sentiment_prompt = prompt_tuning.create_sentiment_prompt(
+                review=review,
+                predicted_categories=predicted_categories,
+                examples=sentiment_examples
+            )
 
              # 将情感分析 prompt 转换为模型输入的格式
             inputs_sentiment = self.tokenizer(sentiment_prompt, return_tensors="pt")
@@ -82,9 +114,9 @@ class LlamaTextClassificationSentiment(ScriptBase):
 if __name__ == '__main__':
     # 加载 LLaMA 3.2 模型和分词器
     # tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
-    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-1B")
+    tokenizer = AutoTokenizer.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-1B")
     # model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
-    model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-1B")
+    model = AutoModelForCausalLM.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-1B")
     # 加载数据集
     data_prep = DataPrep()
     file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/schema分类标签结果_MKT_AK数据.xlsx'
@@ -92,5 +124,5 @@ if __name__ == '__main__':
     # df_review_text = data_prep.sentence_embedding(df_review_text) # 暂时不将sentence embedding的结果直接作为llama的输入来使用
 
     llama_text_classification_sentiment = LlamaTextClassificationSentiment(model, tokenizer, data_prep)
-    # llama_text_classification_sentiment.generate_classification_and_sentiment_v1(df_review_text, classification_label)
-    llama_text_classification_sentiment.generate_classification_and_sentiment_v2(df_review_text, classification_label)
+    llama_text_classification_sentiment.generate_classification_and_sentiment_v1(df_review_text, classification_label)
+    # llama_text_classification_sentiment.generate_classification_and_sentiment_v2(df_review_text, classification_label)
