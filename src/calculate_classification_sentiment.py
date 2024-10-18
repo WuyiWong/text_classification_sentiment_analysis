@@ -28,6 +28,8 @@ class LlamaTextClassificationSentiment(ScriptBase):
             categories=classification_label,
             examples=examples
         )
+        # 如果不给examples会是什么结果？
+
 
         # 遍历数据集中的每条评论，生成对应的 prompt 并进行推理
         for index, row in df_review.iterrows():
@@ -41,12 +43,24 @@ class LlamaTextClassificationSentiment(ScriptBase):
             # 将 prompt 转换为模型输入的格式
             inputs = self.tokenizer(final_prompt, return_tensors="pt")  # "pt"：返回 PyTorch 张量。
             
+            # 获取输入tokens的长度            
+            input_ids = inputs['input_ids']
+            input_length = input_ids.shape[-1]
+            
             # 使用 LLaMA 3.2 生成输出
             outputs = self.model.generate(**inputs, max_new_tokens=50, eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id)  # **inputs 是 Python 中的解包操作，意味着你将字典 inputs 中的所有键值对作为关键字参数传递给 generate 方法。
             
+            # 获取仅由模型生成的 tokens
+            generated_tokens = outputs[0][input_length: ]
+
             # 解码输出结果
-            decoded_output = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            decoded_output = self.tokenizer.decode(generated_tokens, skip_special_tokens=True)
             
+            # 解析输出结果，提取出对应类别和每个类别的情感倾向
+            sentiments_dict = parse_output(decoded_output, classification_label)
+            
+
+
             self.info(f"Review {index + 1} Result: \n{decoded_output}\n")
     
     def generate_classification_and_sentiment_v2(self, df_review, classification_label):
@@ -54,7 +68,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
         prompt_tuning = PromptTuning()
         
         # 在循环外生成分类和情感分析的示例
-        classification_examples = prompt_tuning.classification_examples()
+        classification_examples = prompt_tuning.classification_examples_long()
         sentiment_examples = prompt_tuning.sentiment_examples()
 
         # 遍历数据集中的每条评论，生成对应的 prompt 并进行推理
@@ -72,7 +86,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
             inputs_classification = self.tokenizer(classification_prompt, return_tensors="pt")
 
             # 使用模型进行分类推理
-            classification_outputs = self.model.generate(**inputs_classification, max_new_tokens=256, eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id)
+            classification_outputs = self.model.generate(**inputs_classification, max_new_tokens=40, eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id)
             
             # 解码分类输出结果
             decoded_classification_output = self.tokenizer.decode(classification_outputs[0], skip_special_tokens=True)
@@ -114,9 +128,9 @@ class LlamaTextClassificationSentiment(ScriptBase):
 if __name__ == '__main__':
     # 加载 LLaMA 3.2 模型和分词器
     # tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
-    tokenizer = AutoTokenizer.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-1B")
+    tokenizer = AutoTokenizer.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-3B-Instruct")
     # model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
-    model = AutoModelForCausalLM.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-1B")
+    model = AutoModelForCausalLM.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-3B-Instruct")
     # 加载数据集
     data_prep = DataPrep()
     file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/schema分类标签结果_MKT_AK数据.xlsx'
