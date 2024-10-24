@@ -16,15 +16,15 @@ class LlamaTextClassificationSentiment(ScriptBase):
     def __init__(self, model, tokenizer, data_prep):
         # 判断是否支持MPS，如果支持则将模型移动到MPS，否则保持在CPU上
         
-        if torch.backends.mps.is_available():
-            self.model = model.to('mps')  # 将模型移动到MPS设备上
-            self.device = torch.device('mps')
-            print("MPS device is available, using MPS for computation.")
+        if torch.cuda.is_available():
+            self.model = model.to('cuda')  # 将模型移动到MPS设备上
+            self.device = torch.device('cuda')
+            print("CUDA device is available, using CUDA for computation.")
             
         else:
             self.model = model.to('cpu')
             self.device = torch.device('cpu')
-            print("MPS device is not available, using CPU for computation.")
+            print("CUDA device is not available, using CPU for computation.")
         self.tokenizer = tokenizer
         self.data_prep = data_prep
 
@@ -61,7 +61,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
             input_length = input_ids.shape[-1]
             
             # 使用 LLaMA 3.2 生成输出
-            outputs = self.model.generate(**inputs, max_new_tokens=60, eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id)  # **inputs 是 Python 中的解包操作，意味着你将字典 inputs 中的所有键值对作为关键字参数传递给 generate 方法。
+            outputs = self.model.generate(**inputs, max_new_tokens=128, temperature=0.2, top_p=0.7, eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id)  # **inputs 是 Python 中的解包操作，意味着你将字典 inputs 中的所有键值对作为关键字参数传递给 generate 方法。
             
             # 获取仅由模型生成的 tokens
             generated_tokens = outputs[0][input_length: ].to('cpu')
@@ -110,7 +110,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
         parse_output = ParseOutput()
         
         # 在循环外生成分类和情感分析的示例
-        classification_examples = prompt_tuning.classification_example_v2_medium(classification_label)
+        classification_examples = prompt_tuning.classification_examples_v2_medium(classification_label)
         sentiment_examples = prompt_tuning.sentiment_examples_v2()
 
         sentiment_classification_list = []
@@ -135,9 +135,9 @@ class LlamaTextClassificationSentiment(ScriptBase):
             # 使用 LLaMA 3.2 生成输出
             classification_outputs = self.model.generate(
                 **inputs_classification, 
-                max_new_tokens=256, 
-                temperature=0.5,
-                top_p=0.8,
+                max_new_tokens=64, 
+                temperature=0.2, # 0.1
+                top_p=0.6,
                 eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id
             )
             
@@ -173,6 +173,8 @@ class LlamaTextClassificationSentiment(ScriptBase):
             sentiment_outputs = self.model.generate(
                 **inputs_sentiment, 
                 max_new_tokens=256, 
+                temperature=0.2, # 0.3
+                top_p=0.8, # 0.7
                 eos_token_id=self.tokenizer.eos_token_id, 
                 pad_token_id=self.tokenizer.eos_token_id
             )
@@ -197,7 +199,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
             sentiment_classification_list.append(sentiments_dict)
 
             self.info(f"Review {index + 1} has processed successfully\n")
-            if index + 1 >= 200:
+            if index + 1 >= 100:
                 break
             # self.info(f"Review {index + 1} Classification Result:\n {decoded_classification_output}\n")
             # self.info(f"Review {index + 1} Sentiment Result:\n {decoded_sentiment_output}\n")
@@ -212,7 +214,7 @@ if __name__ == '__main__':
     # model = AutoModelForCausalLM.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-3B-Instruct")
     # 加载数据集
     data_prep = DataPrep()
-    file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/schema分类标签结果_MKT_AK数据.xlsx'
+    file_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/input/schema分类标签结果_MKT_AK数据.xlsx'
     
 
 
@@ -225,14 +227,14 @@ if __name__ == '__main__':
         prompt_type = sys.argv[1]
 
         if prompt_type == "one":
-            save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/results/llama_outputs_one_long.xlsx'
+            save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_one_long.xlsx'
             df_llama_sentiments_classfication = llama_text_classification_sentiment.generate_classification_and_sentiment_v1(df_review_text, classification_label)
             llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication, save_path)
         elif prompt_type == "two":
-            save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/results/llama_outputs_two.xlsx'
+            save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two.xlsx'
             df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_v2(df_review_text, classification_label)
             llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)
     if len(sys.argv) == 1:
-        save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/results/llama_outputs_one_medium.xlsx'
-        df_llama_sentiments_classfication = llama_text_classification_sentiment.generate_classification_and_sentiment_v1(df_review_text, classification_label)
-        llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication, save_path)
+        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples.xlsx'
+        df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_v2(df_review_text, classification_label)
+        llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)

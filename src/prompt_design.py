@@ -444,7 +444,7 @@ class PromptTuning(ScriptBase):
         prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
         return prompt
 
-    def classfication_examples_v2_long(self, categories):
+    def classification_examples_v2_long(self, categories):
 
         classification_examples = [
             {
@@ -556,7 +556,7 @@ class PromptTuning(ScriptBase):
 
         return classification_examples
     
-    def classification_example_v2_medium(self, categories):
+    def classification_examples_v2_medium(self, categories):
         classification_examples = [
             {
                 'review': "This is one of those rare Allegra dresses I have bought that fits perfectly and looks great. My only complaint is that the description states there is a self-tie sash, and the dress I received did not have a sash at all. I am still giving the product five stars because I think the price/quality ratio is excellent. I have ordered a number of Allegra items and returned most because they didn't fit properly. I've also received Allegra dresses with major quality control issues (kind of what you would expect at this price point) in the past. This particular dress is perfect, and I am very happy with it. Note: I am 5' 3\", and the hem hits right at my knee.", 

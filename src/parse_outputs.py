@@ -27,6 +27,12 @@ class ParseOutput(ScriptBase):
 
         # 解析 decoded_output
         lines = decoded_output.strip().split('\n')
+        index = 0 # 初始化index 用来作为正确输出的结尾index
+        for i, element in enumerate(lines):
+            if 'Review' in element:
+                index = i
+                break
+        lines = lines[: index]
         for line in lines:
             line = line.strip()
             if line.startswith('-'):
@@ -44,6 +50,14 @@ class ParseOutput(ScriptBase):
     # 提取类别列表
     def extract_categories(self, classification_output, classification_label):
         lines = classification_output.strip().split('\n')
+        
+        index = 0 # 初始化index 用来作为正确输出的结尾index
+        for i, element in enumerate(lines):
+            if 'Review' in element:
+                index = i
+                break
+        lines = lines[: index]
+        
         categories_list = []
         
         for line in lines:
