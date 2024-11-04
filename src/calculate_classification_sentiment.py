@@ -61,7 +61,14 @@ class LlamaTextClassificationSentiment(ScriptBase):
             input_length = input_ids.shape[-1]
             
             # 使用 LLaMA 3.2 生成输出
-            outputs = self.model.generate(**inputs, max_new_tokens=128, temperature=0.2, top_p=0.7, eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id)  # **inputs 是 Python 中的解包操作，意味着你将字典 inputs 中的所有键值对作为关键字参数传递给 generate 方法。
+            outputs = self.model.generate(
+                **inputs, 
+                max_new_tokens=128, 
+                temperature=0.2, 
+                top_p=0.7, 
+                eos_token_id=self.tokenizer.eos_token_id, 
+                pad_token_id=self.tokenizer.eos_token_id
+            )  # **inputs 是 Python 中的解包操作，意味着你将字典 inputs 中的所有键值对作为关键字参数传递给 generate 方法。
             
             # 获取仅由模型生成的 tokens
             generated_tokens = outputs[0][input_length: ].to('cpu')
@@ -208,9 +215,9 @@ class LlamaTextClassificationSentiment(ScriptBase):
 
 if __name__ == '__main__':
     # 加载 LLaMA 3.2 模型和分词器
-    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
+    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct", trust_remote_code=True)
     # tokenizer = AutoTokenizer.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-3B-Instruct")
-    model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct")
+    model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct", device_map="auto", torch_dtype=torch.bfloat16, trust_remote_code=True).eval()
     # model = AutoModelForCausalLM.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-3B-Instruct")
     # 加载数据集
     data_prep = DataPrep()
