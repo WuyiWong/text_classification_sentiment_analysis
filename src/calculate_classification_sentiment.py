@@ -28,7 +28,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
         self.tokenizer = tokenizer
         self.data_prep = data_prep
 
-    def generate_classification_and_sentiment_v1(self, df_review, classification_label):
+    def generate_classification_and_sentiment_one_step(self, df_review, classification_label):
         
         
         # 使用函数生成 prompt
@@ -111,7 +111,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
         
 
     
-    def generate_classification_and_sentiment_v2(self, df_review, classification_label):
+    def generate_classification_and_sentiment_two_step(self, df_review, classification_label):
         
         prompt_tuning = PromptTuning()
         parse_output = ParseOutput()
@@ -120,7 +120,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
 
 
         # 在循环外生成分类和情感分析的示例
-        classification_examples = prompt_tuning.classification_examples_v2_medium(classification_label)
+        classification_examples = prompt_tuning.classification_examples_medium(classification_label)
         sentiment_examples = prompt_tuning.sentiment_examples_v2()  # TODO 修改prompt examples
 
         sentiment_classification_list = []
@@ -129,7 +129,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
             review = row['review_text']
             
             # Step 1: 分类 (调用 create_classification_prompt 函数)
-            classification_prompt = prompt_tuning.create_classification_prompt_v2(
+            classification_prompt = prompt_tuning.create_classification_prompt_v3(
                 review=review,
                 categories=classification_label,
                 classification_examples=classification_examples
@@ -242,13 +242,13 @@ if __name__ == '__main__':
 
         if prompt_type == "one":
             save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_one_long.xlsx'
-            df_llama_sentiments_classfication = llama_text_classification_sentiment.generate_classification_and_sentiment_v1(df_review_text, classification_label)
+            df_llama_sentiments_classfication = llama_text_classification_sentiment.generate_classification_and_sentiment_one_step(df_review_text, classification_label)
             llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication, save_path)
         elif prompt_type == "two":
             save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two.xlsx'
-            df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_v2(df_review_text, classification_label)
+            df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_two_step(df_review_text, classification_label)
             llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)
     if len(sys.argv) == 1:
-        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v2.xlsx'
-        df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_v2(df_review_text, classification_label)
+        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v3.xlsx'
+        df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_two_step(df_review_text, classification_label)
         llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)
