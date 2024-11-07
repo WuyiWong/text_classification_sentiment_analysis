@@ -428,6 +428,8 @@ class PromptTuning(ScriptBase):
         prompt += f"\nNow, classify the following review and provide the categories only:\nReview: '{review}'\nOutput:"
 
         return prompt
+    
+    
     def create_classification_prompt_v2(self, review, categories, classification_examples=None):
         prompt = (
             f"Classify the following product review into one or more of the following categories: {', '.join(categories)}.\n"
@@ -583,8 +585,8 @@ class PromptTuning(ScriptBase):
                 'category': categories,
                 'output': ['Design and Appearance', 'Size and Fit', 'Product Quality', 'Washing and Maintenance']
             },
-            {
-                'review': "I got this because I thought it would be breast feeding friendly. It’s is amazing. Super easy to breast feed in, looks awesome with a denim jacket, and makes me look like I wasn’t even pregnant. I have it in four colors. Highly recommend ??",
+            { 
+                'review': "Perfect dress for our Kentucky Derby party, and I know I’ll lowest it more than just the one time. Great to dress up with accessories or keep it as is.",
                 'category': categories,
                 'output': ['Usage Scenarios and Applicability', 'Design and Appearance', 'Overall Satisfaction']
             },
@@ -593,35 +595,35 @@ class PromptTuning(ScriptBase):
                 'category': categories,
                 'output': ['Usage Scenarios and Applicability', 'Size and Fit', 'Comfort', 'Product Quality', 'Overall Satisfaction']
             },
-            {
-                'review': "The fabric of this product is good and not cheap! The wrinkles were expected because of it being packaged but that can be easily fixed. The color is exactly as pictured and the fit of it is great. I ordered a medium and I'm comfortable in it.",
+            { 
+                'review': "Good quality dress, sewn very well. Purchased in my proper size and it fit really well. I would buy from this seller again. I purchased the light blue and the color was just as expected!",
                 'category': categories,
-                'output': ['Shipping and Packaging', 'Product Quality', 'Design and Appearance', 'Size and Fit', 'Comfort']
+                'output': ['Product Quality', 'Size and Fit', 'Design and Appearance', 'Overall Satisfaction']
             },
             {
                 'review': "This dress is as described except for the neckline. It is a little bit higher than in the pictures. Other than that it’s exactly as I expected it to be. The material isn’t too thin and the length is perfect. The sleeve are pretty and the color is beautiful.",
                 'category': categories,
-                'output': ['Design and Appearance', 'Product Quality', 'Color and Appearance', 'Size and Fit']
+                'output': ['Design and Appearance', 'Product Quality', 'Size and Fit']
             },
-            {
-                'review': "Dress was not the same pattern. It looked cheap. No tags whatsoever to know how to care for it. Ordered normal size and was small looking because of elastic in waist. Wasn't at all flowing like the style. Returning for sure.",
+            { 
+                'review': "The dress is cute and neither frumpy or low cut. It is good for any occasion or just to wear a dress for the heck of it.  Easy to wash and requires no ironing. A great deal!",
                 'category': categories,
-                'output': ['Product Quality', 'Size and Fit', 'Washing and Maintenance', 'Overall Satisfaction', 'Design and Appearance']
+                'output': ['Design and Appearance', 'Usage Scenarios and Applicability', 'Washing and Maintenance', 'Price and Value']
             },
-            {
-                'review': "Washed it for the first time and there are strings and hems coming undone all over. Went to exchange or return it and apparently my window closed, such a bummer, it really is a cute dress!",
+            { 
+                'review': "This lovely dress is EXACTLY as pictured and was delivered with speed an care! Bravo!",
                 'category': categories,
-                'output': ['Product Quality', 'Washing and Maintenance', 'Brand and Customer Service', 'Design and Appearance']
+                'output': ['Design and Appearance', 'Shipping and Packaging', 'Overall Satisfaction']
             },
             {
                 'review': "I had to have a red dress for a sorority red dress gala. Polka dot, but nevertheless red. I tried four amazon dresses, and this was the cutest and nicest material. It seems like it will wash well. The medium is very generous (or did I buy the large?).",
                 'category': categories,
                 'output': ['Usage Scenarios and Applicability', 'Design and Appearance', 'Product Quality', 'Size and Fit', 'Washing and Maintenance']
             },
-            {
-                'review': "This dress was sized at a 12 to 14, which should have been fine. Was too small, came all bunched up in a bag and wrinkled, the fabric is not very breathable and I did not care for the dress at all. Looks lovely in the picture, but I actually hated it.",
+            { 
+                'review': "Such a beautiful and well made dress.  This is my 1st time ordering from this brand.  Quality is excellent.  I ordered a size Small.  I am a 36C  and on the curvy side and fit was just right.  A bigger chest would not fit properly.  I can't wait to order more dresses from this brand.",
                 'category': categories,
-                'output': ['Size and Fit', 'Shipping and Packaging', 'Product Quality', 'Design and Appearance']
+                'output': ['Product Quality', 'Size and Fit', 'Brand and Customer Service', 'Overall Satisfaction']
             },
             {
                 'review': "Very clean product. The fabric, craftsmanship, and underneath slip are all thick and very well made. No cheap materials, no messy stitching, no misalignments. Looks and feels like a dress you could easily pay more money for, at a small chic boutique by the beach...",
@@ -631,12 +633,12 @@ class PromptTuning(ScriptBase):
             {
                 'review': "The material is Soft and flows well, no stretch but due to the style stretch is not really needed if you order the proper size. Fit as expected and the color slightly more teal than the picture shows. Merchant delivered what was advertised and I am happy that I ordered.",
                 'category': categories,
-                'output': ['Size and Fit', 'Color and Appearance', 'Shipping and Packaging', 'Brand and Customer Service']
+                'output': ['Product Quality', 'Size and Fit', 'Design and Appearance', 'Brand and Customer Service', 'Overall Satisfaction']
             }
-            
         ]
 
         return classification_examples
+
 
     def classification_examples(self):
         examples = textwrap.dedent("""
@@ -1138,7 +1140,7 @@ class PromptTuning(ScriptBase):
                 'output': {
                     'Size and Fit': 'Positive',
                     'Design and Appearance': 'Positive',
-                    'Product Quality': 'Positive',
+                    'Product Quality': 'Neutral',
                     'Price and Value': 'Positive',
                     'Overall Satisfaction': 'Positive',
                     'Brand and Customer Service': 'Neutral'
@@ -1184,9 +1186,9 @@ class PromptTuning(ScriptBase):
                 }
             },
             {
-                'review': "I got this because I thought it would be breast feeding friendly.  It’s is amazing.  Super easy to breast feed in, looks awesome with a denim jacket, and makes me look like I wasn’t even pregnant.  I have it in four colors.  Highly recommend ??",
+                'review': "Perfect dress for our Kentucky Derby party, and I know I’ll lowest it more than just the one time. Great to dress up with accessories or keep it as is.",
                 'categories': ['Usage Scenarios and Applicability', 'Design and Appearance', 'Overall Satisfaction'],
-                'output': {
+                'output': { 
                     'Usage Scenarios and Applicability': 'Positive',
                     'Design and Appearance': 'Positive',
                     'Overall Satisfaction': 'Positive'
@@ -1204,45 +1206,41 @@ class PromptTuning(ScriptBase):
                 }
             },
             {
-                'review': "The fabric of this product is good and not cheap! The wrinkles were expected because of it being packaged but that can be easily fixed. The color is exactly as pictured and the fit of it is great. I ordered a medium and I'm comfortable in it.",
-                'categories': ['Shipping and Packaging', 'Product Quality', 'Design and Appearance', 'Size and Fit', 'Comfort'],
-                'output': {
-                    'Shipping and Packaging': 'Neutral',
+                'review': "Good quality dress, sewn very well. Purchased in my proper size and it fit really well. I would buy from this seller again. I purchased the light blue and the color was just as expected!",
+                'categories': ['Product Quality', 'Size and Fit', 'Design and Appearance', 'Overall Satisfaction'],
+                'output': { 
                     'Product Quality': 'Positive',
-                    'Design and Appearance': 'Positive',
                     'Size and Fit': 'Positive',
-                    'Comfort': 'Positive'
+                    'Design and Appearance': 'Positive',
+                    'Overall Satisfaction': 'Positive'
                 }
             },
             {
                 'review': "This dress is as described except for the neckline. It is a little bit higher than in the pictures. Other than that it’s exactly as I expected it to be. The material isn’t too thin and the length is perfect. The sleeve are pretty and the color is beautiful.",
-                'categories': ['Design and Appearance', 'Product Quality', 'Color and Appearance', 'Size and Fit'],
-                'output': {
+                'categories': ['Design and Appearance', 'Product Quality', 'Size and Fit'],
+                'output': { 
                     'Design and Appearance': 'Positive',
                     'Product Quality': 'Positive',
-                    'Color and Appearance': 'Positive',
-                    'Size and Fit': 'Positive'
+                    'Size and Fit': 'Neutral'
                 }
             },
             {
-                'review': "Dress was not the same pattern. It looked cheap. No tags whatsoever to know how to care for it. Ordered normal size and was small looking because of elastic in waist. Wasn't at all flowing like the style. Returning for sure.",
-                'categories': ['Product Quality', 'Size and Fit', 'Washing and Maintenance', 'Overall Satisfaction', 'Design and Appearance'],
-                'output': {
-                    'Product Quality': 'Negative',
-                    'Size and Fit': 'Negative',
-                    'Washing and Maintenance': 'Negative',
-                    'Overall Satisfaction': 'Negative',
-                    'Design and Appearance': 'Negative'
+                'review': "The dress is cute and neither frumpy or low cut. It is good for any occasion or just to wear a dress for the heck of it.  Easy to wash and requires no ironing. A great deal!",
+                'categories': ['Design and Appearance', 'Usage Scenarios and Applicability', 'Washing and Maintenance', 'Price and Value'],
+                'output': { 
+                    'Design and Appearance': 'Positive',
+                    'Usage Scenarios and Applicability': 'Positive',
+                    'Washing and Maintenance': 'Positive',
+                    'Price and Value': 'Positive'
                 }
             },
             {
-                'review': "Washed it for the first time and there are strings and hems coming undone all over. Went to exchange or return it and apparently my window closed , such a bummer, it really is a cute dress!",
-                'categories': ['Product Quality', 'Washing and Maintenance', 'Brand and Customer Service', 'Design and Appearance'],
-                'output': {
-                    'Product Quality': 'Negative',
-                    'Washing and Maintenance': 'Negative',
-                    'Brand and Customer Service': 'Negative',
-                    'Design and Appearance': 'Positive'
+                'review': "This lovely dress is EXACTLY as pictured and was delivered with speed an care! Bravo!",
+                'categories': ['Design and Appearance', 'Shipping and Packaging', 'Overall Satisfaction'],
+                'output': {  
+                    'Design and Appearance': 'Positive',
+                    'Shipping and Packaging': 'Positive',
+                    'Overall Satisfaction': 'Positive'
                 }
             },
             {
@@ -1257,13 +1255,13 @@ class PromptTuning(ScriptBase):
                 }
             },
             {
-                'review': "This dress was sized at a 12 to 14, which should have been fine. Was too small, came all bunched up in a bag and wrinkled, the fabric is not very breathable and I did not care for the dress at all. Looks lovely in the picture, but I actually hated it.",
-                'categories': ['Size and Fit', 'Shipping and Packaging', 'Product Quality', 'Design and Appearance'],
-                'output': {
-                    'Size and Fit': 'Negative',
-                    'Shipping and Packaging': 'Negative',
-                    'Product Quality': 'Negative',
-                    'Design and Appearance': 'Negative'
+                'review': "Such a beautiful and well made dress.  This is my 1st time ordering from this brand.  Quality is excellent.  I ordered a size Small.  I am a 36C  and on the curvy side and fit was just right.  A bigger chest would not fit properly.  I can't wait to order more dresses from this brand.",
+                'categories': ['Product Quality', 'Size and Fit', 'Brand and Customer Service', 'Overall Satisfaction'],
+                'output': { 
+                    'Product Quality': 'Positive',
+                    'Size and Fit': 'Positive',
+                    'Brand and Customer ': 'Positive',
+                    'Overall Satisfaction': 'Positive'
                 }
             },
             {
@@ -1276,66 +1274,15 @@ class PromptTuning(ScriptBase):
                     'Overall Satisfaction': 'Positive'
                 }
             },
-            {
+            { 
                 'review': "The material is soft and flows well, no stretch but due to the style stretch is not really needed if you order the proper size. Fit as expected and the color slightly more teal than the picture shows. Merchant delivered what was advertised and I am happy that I ordered.",
-                'categories': ['Size and Fit', 'Color and Appearance', 'Shipping and Packaging', 'Brand and Customer Service'],
+                'categories': ['Product Quality', 'Size and Fit', 'Design and Appearance', 'Brand and Customer Service', 'Overall Satisfaction'],
                 'output': {
-                    'Size and Fit': 'Positive',
-                    'Color and Appearance': 'Neutral',
-                    'Shipping and Packaging': 'Positive',
-                    'Brand and Customer Service': 'Positive'
-                }
-            },
-            {
-                'review': "This is a pretty, flowy dress. It's lightweight enough for summer, but it's not see thru. I love Nemidor dresses, and I plan on buying more of them when they go on sale. They feel good on, and they make you feel good when your wear them.",
-                'categories': ['Design and Appearance', 'Product Quality', 'Comfort', 'Brand and Customer Service', 'Overall Satisfaction'],
-                'output': {
-                    'Design and Appearance': 'Positive',
                     'Product Quality': 'Positive',
-                    'Comfort': 'Positive',
+                    'Size and Fit': 'Positive',
+                    'Design and Appearance': 'Positive',
                     'Brand and Customer Service': 'Positive',
                     'Overall Satisfaction': 'Positive'
-                }
-            },
-            {
-                'review': "This dress has a cute top half but the layers on the skirt are cut weird and make your hips look big.  The small was a little loose but I wouldn’t size up.  Material is ok.  Doesn’t look like it will wrinkle at all.  Shorter in front and longer in back.  Love the print.",
-                'categories': ['Design and Appearance', 'Size and Fit', 'Product Quality', 'Overall Satisfaction'],
-                'output': {
-                    'Design and Appearance': 'Neutral',
-                    'Size and Fit': 'Negative',
-                    'Product Quality': 'Neutral',
-                    'Overall Satisfaction': 'Neutral'
-                }
-            },
-            {
-                'review': "I relied on several reviews when picking this dress so I thought I’d leave my own. It’s very cute on and comfy. I am 5’2” and about 128lbs. Almost always order a medium but I saw this runs big. It definitely does.  I ordered a small and ended up using small safety pins at the waist to cinch it in a bit. I could’ve gotten away with the extra small but I can make this work. I would’ve given it five stars except for how large it runs and it arrived with one of the bottoms missing on the right sleeve cuff. They send an extra so I can take care of this as well.",
-                'categories': ['Design and Appearance', 'Comfort', 'Size and Fit', 'Shipping and Packaging', 'Brand and Customer Service'],
-                'output': {
-                    'Design and Appearance': 'Positive',
-                    'Comfort': 'Positive',
-                    'Size and Fit': 'Neutral',
-                    'Shipping and Packaging': 'Negative',
-                    'Brand and Customer Service': 'Neutral'
-                }
-            },
-            {
-                'review': "I've purchased multiple items from the brand before and I've never had a problem with anything fitting before this dress. The dress was beautiful and I ordered based on the size chart but all big armed buyers should be wary because my arms did not fit and I had to return it unfortunately.",
-                'categories': ['Design and Appearance', 'Size and Fit', 'Overall Satisfaction', 'Brand and Customer Service'],
-                'output': {
-                    'Design and Appearance': 'Positive',
-                    'Size and Fit': 'Negative',
-                    'Overall Satisfaction': 'Negative',
-                    'Brand and Customer Service': 'Neutral'
-                }
-            },
-            {
-                'review': "I am super happy with this purchase!! I was a little worried since the model seems to maybe imply the clothes will be junior sizes but I decided to trust the measurements provided by Allegra K because the dress is so pretty and I am glad I did! I'm a large and am curvy and it fit so well and looked so cute! I really appreciate Allegra K because it seems usually these styles of clothes run really small but they have realistic sizes for all women and I'm such a fan!! Love everything about it. Thank you!",
-                'categories': ['Size and Fit', 'Design and Appearance', 'Overall Satisfaction', 'Brand and Customer Service'],
-                'output': {
-                    'Size and Fit': 'Positive',
-                    'Design and Appearance': 'Positive',
-                    'Overall Satisfaction': 'Positive',
-                    'Brand and Customer Service': 'Positive'
                 }
             }
         ]

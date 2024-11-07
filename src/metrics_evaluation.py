@@ -12,26 +12,26 @@ class MetricsEvaluation(ScriptBase):
     def __init__(self):
         self.info("MetricsEvaluation starting...\n")
 
-    def calculate_metrics(self, **kwargs):
+    def calculate_metrics_v1(self, **kwargs):
 
         # 获取ground_truth的结果
         ground_truth_file_path = kwargs.get('ground_truth_file_path', None)
         if ground_truth_file_path == None:
             raise ValueError("The test_file_path does not exist, please check the original path of it")
-        df_ground_truth = pd.read_excel(ground_truth_file_path, sheet_name="Sheet2")
+        df_ground_truth = pd.read_excel(ground_truth_file_path, sheet_name="Sheet1")
 
         # 获取 llama 模型的结果
         llama_output_file_path = kwargs.get('llama_output_file_path', None)
         df_llama_output = pd.read_excel(llama_output_file_path, sheet_name="Sheet1")
 
-        df_ground_truth = df_ground_truth.iloc[1: 114]
+        # df_ground_truth = df_ground_truth.iloc[1: 114]
         mask_1 = df_ground_truth['id'].isin(df_llama_output['id'])
         df_ground_truth_match = df_ground_truth.loc[mask_1].reset_index(drop=True)
 
-        # TODO 获取gpt模型的结果
+        # 获取gpt模型的结果
         gpt_output_file_path = kwargs.get('gpt_output_file_path', None)
         df_gpt_output = pd.read_excel(gpt_output_file_path, sheet_name='MKT_标签分类')
-        mask_2 = df_gpt_output['id'].isin(df_llama_output['id'])
+        mask_2 = df_gpt_output['id'].isin(df_ground_truth_match['id'])
         df_gpt_output_match = df_gpt_output.loc[mask_2].reset_index(drop=True)
 
         # 将结果中 True 变成 positive, False 变成 Negative
@@ -67,15 +67,57 @@ class MetricsEvaluation(ScriptBase):
         self.info(f"Overall_accuracy of gpt is {overall_accuracy_gpt}.\n")
         self.info("End")        
     
+    def calculate_metrics_v2(self, ground_truth_file_path, llm_output_file_path):
 
+        # 获取ground_truth的结果
+        df_ground_truth = pd.read_excel(ground_truth_file_path, sheet_name="Sheet1")
+        df_ground_truth.drop(['Unnamed: 1', 'Unnamed: 3', '中文翻译'], axis=1, inplace=True)
+        
+        # 将 NaN 填为 0，将 Positive, Negative, Neutral 分别变成为 1,2,3
+        df_ground_truth_filled_0 = df_ground_truth.fillna(0) 
+        df_ground_truth_filled = df_ground_truth_filled_0.replace({"Positive": 1, "Negative": 2, "Neutral": 3})
+        
+        # 获取 大模型 (llama) 的结果
+        df_llm_output = pd.read_excel(llm_output_file_path, sheet_name="Sheet1")
+
+        # 将 NaN 填为 0，将 Positive, Negative, Neutral 分别变成为 1,2,3
+        df_llm_output_filled_0 = df_llm_output.fillna(0) 
+        df_llm_output_filled = df_llm_output_filled_0.replace({"Positive": 1, "Negative": 2, "Neutral": 3})
+        ####### 计算 准确率
+        ### 1. 计算 llm 输出的准确率
+
+        
+        correct_nums_llm = 0
+        total_nums = 0
+        # df_ground_truth.drop(['Overall Satisfaction'], axis=1, inplace=True)
+        for column in df_ground_truth_filled.columns[2:]: # 遍历每列
+            
+            # 统计正确预测的个数
+            correct_nums_label = (df_ground_truth_filled[column] == df_llm_output_filled[column]).sum()
+            correct_nums_llm += correct_nums_label
+            
+            # 统计总（Positive, negative, neutral）的个数
+            total_nums_label = df_ground_truth_filled[column].value_counts().sum()
+            total_nums += total_nums_label
+
+            self.info(f"{column}: correct_nums_label is {correct_nums_label}, total_nums_label is {total_nums_label}, label accuracy is {correct_nums_label/total_nums_label}\n")
+
+        overall_accuracy_llm = correct_nums_llm / total_nums
+        self.info(f"Overall accuracy of llm is {overall_accuracy_llm}.")
+
+        self.info("End")        
+    
 if __name__ == "__main__":
 
     obj = MetricsEvaluation()
-    ground_truth_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/GPT-4o_manual_test_set_of_review_sentiment_1031.xlsx'
-    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/results/llama_outputs_two_medium_examples.xlsx'
-    gpt_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/schema分类标签结果_MKT_AK数据.xlsx'
-    obj.calculate_metrics(
+    ground_truth_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/test_dataset_for_text_sentiment.xlsx'
+    gpt_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/gpt4_result_Mr_Xv_v2.xlsx'
+    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v2/llama_outputs_two_medium_examples_v2.xlsx'
+    
+    qwen_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_qwen2.5/qwen2.5.xlsx'
+    gpt4o_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_gpt4o/result_of_gpt4o_v2.xlsx'
+
+    obj.calculate_metrics_v2(
         ground_truth_file_path=ground_truth_file_path,
-        llama_output_file_path=llama_output_file_path,
-        gpt_output_file_path=gpt_output_file_path
+        llm_output_file_path=qwen_file_path
     )
