@@ -6,7 +6,7 @@ import textwrap
 class PromptTuning(ScriptBase):
 
     # 定义 Prompt 模板
-    def create_prompt_one_mission(self, review, categories, examples=None):
+    def create_prompt_one_mission_deprecated(self, review, categories, examples=None):
         """
         Generates a zero-shot prompt for classification and sentiment analysis without including examples in the main body.
         The examples are passed separately and used only when needed to inform the model.
@@ -32,7 +32,7 @@ class PromptTuning(ScriptBase):
         
         return prompt
     
-    def examples_prompt_one_mission_medium_length(self):
+    def examples_prompt_one_mission_medium_length_deprecated(self):
         # 定义例子 prompt 模版
         examples = textwrap.dedent(f"""
         Example 1: 
@@ -168,7 +168,7 @@ class PromptTuning(ScriptBase):
 
         return examples
 
-    def examples_prompt_one_mission_brief_length(self):
+    def examples_prompt_one_mission_brief_length_deprecated(self):
         # 定义例子 prompt 模版
         examples = textwrap.dedent(f"""
         Example 1:
@@ -236,7 +236,7 @@ class PromptTuning(ScriptBase):
 
         return examples
 
-    def examples_prompt_one_mission_long_length(self):
+    def examples_prompt_one_mission_long_length_deprecated(self):
         examples = textwrap.dedent("""
         Example 1: 
         Review: "This is one of those rare Allegra dresses I have bought that fits perfectly and looks great. My only complaint is that the description states there is a self-tie sash, and the dress I received did not have a sash at all. I am still giving the product five stars because I think the price/quality ratio is excellent. I have ordered a number of Allegra items and returned most because they didn't fit properly. I've also received Allegra dresses with major quality control issues (kind of what you would expect at this price point) in the past. This particular dress is perfect, and I am very happy with it. Note: I am 5' 3", and the hem hits right at my knee."
@@ -448,12 +448,72 @@ class PromptTuning(ScriptBase):
 
     def create_classification_prompt_v3(self, review, categories, classification_examples=None):
         prompt = (
-            f"Classify the following product review into one or more of the following categories, considering especially whether there are any comments indicating Overall Satisfaction with the product: {', '.join(categories)}.\n"
+            f"Classify the following product review into one or more of the following categories, considering especially whether there are any comments indicating Product Quality, Size and Fit with the product: {', '.join(categories)}.\n"
             "You do not need to repeat any part of the input. Just output the categories that apply in the format\n"
             "- Category"
         )
         if classification_examples:
-            prompt += "\n\nHere are some examples, with particular attention given to comments reflecting Overall Satisfaction:"
+            prompt += "\n\nHere are some examples, with particular attention given to comments reflecting Product Quality, Size and Fit:"
+            for idx, example in enumerate(classification_examples, start=1):
+                prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['category'])}\nOutput:"
+                for category in example['output']:
+                    prompt += f"\n- {category}"
+        
+        prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
+        return prompt
+
+
+    def create_classification_prompt_v4(self, review, categories, classification_examples=None):
+        prompt = (
+            f"Classify the following product review into one or more of the following categories, focusing especially on any indicators of Product Quality or Size and Fit within the review text. Specifically:\n"
+            "\n1. If words like 'fabric', 'quality', 'material', 'thin', 'cheap feel', 'flimsy', 'poor quality', 'scratchy' and other similar descriptions are present, categorize the review under Product Quality."
+            "\n2. If words like 'size', 'fit', 'too big', 'too small', 'true to size' and other synonyms are present, categorize the review under Size and Fit."
+            # "\n3. Additionally, if any keywords related to the initial 10 categories appear, prioritize the corresponding category."
+            f"\n\nCategories to consider: {', '.join(categories)}."
+            "\nIMPORTANT: For Product Quality, keywords like 'thin,' 'cheap feel,' or 'flimsy' should trigger this category."
+            "\n\nYou do not need to repeat any part of the input. Just output the categories that apply in the format\n"
+            "- Category"
+        )
+        if classification_examples:
+            prompt += "\n\nHere are some examples, with particular attention given to comments reflecting Product Quality, Size and Fit:"
+            for idx, example in enumerate(classification_examples, start=1):
+                prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['category'])}\nOutput:"
+                for category in example['output']:
+                    prompt += f"\n- {category}"
+        
+        prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
+        return prompt
+
+    def create_classification_prompt_v5(self, review, categories, classification_examples=None):
+        prompt = (
+            f"Classify the following product review into one or more categories: {', '.join(categories)}."
+            "\n\nFocus especially on:"
+            "\n1. Prioritizing Product Quality if 'fabric,' 'quality,' 'material' (or synonyms) appear. If words like 'thin' (e.g., 'material is thin') are used, categorize as Product Quality"
+            "\n2. Prioritizing Size and Fit if 'size,' 'fit' (or synonyms) appear."
+            # "\n3. Prioritizing any category if its keywords appear in the review."
+            "Output format:\n- Category"
+        )
+        if classification_examples:
+            prompt += "\n\nHere are some examples, with particular attention given to comments reflecting Product Quality, Size and Fit:"
+            for idx, example in enumerate(classification_examples, start=1):
+                prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['category'])}\nOutput:"
+                for category in example['output']:
+                    prompt += f"\n- {category}"
+        
+        prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
+        return prompt
+
+    def create_classification_prompt_v6(self, review, categories, classification_examples=None):
+        prompt = (
+            f"Classify the following product review into one or more categories: {', '.join(categories)}."
+            "\n\nFocus especially on:"
+            "\n1. Prioritizing Product Quality if 'fabric', 'quality', 'material' 'thin', 'cheap feel', 'flimsy', 'poor quality', 'scratchy' and other similar descriptions(synonyms) appear."
+            "\n2. Prioritizing Size and Fit if 'size', 'fit', 'too big', 'too small', 'true to size', 'tight' and other synonyms appear."
+            # "\n3. Prioritizing any category if its keywords appear in the review."
+            "Output format:\n- Category"
+        )
+        if classification_examples:
+            prompt += "\n\nHere are some examples, with particular attention given to comments reflecting Product Quality, Size and Fit, Overall Satisfaction:"
             for idx, example in enumerate(classification_examples, start=1):
                 prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['category'])}\nOutput:"
                 for category in example['output']:
@@ -465,7 +525,7 @@ class PromptTuning(ScriptBase):
 
 
 
-    def classification_examples_long(self, categories):
+    def classification_examples_long_deprecated(self, categories):
 
         classification_examples = [
             {
@@ -658,6 +718,79 @@ class PromptTuning(ScriptBase):
 
         return classification_examples
 
+    def classification_examples_brief(self, categories):
+        classification_examples = [
+            {
+                'review': "This is one of those rare Allegra dresses I have bought that fits perfectly and looks great. My only complaint is that the description states there is a self-tie sash, and the dress I received did not have a sash at all. I am still giving the product five stars because I think the price/quality ratio is excellent. I have ordered a number of Allegra items and returned most because they didn't fit properly. I've also received Allegra dresses with major quality control issues (kind of what you would expect at this price point) in the past. This particular dress is perfect, and I am very happy with it. Note: I am 5' 3\", and the hem hits right at my knee.", 
+                'category': categories,
+                'output': ['Size and Fit', 'Design and Appearance', 'Product Quality', 'Price and Value', 'Overall Satisfaction', 'Brand and Customer Service']
+            },
+            {
+                'review': "This dress was pretty bulky and not so flowy looking like in the photos. I felt uncomfortable in it. Didn't wear it for long. Even with the tie backs it was just too big for me. Too much fabric.",
+                'category': categories,  # 动态的 categories 列表
+                'output': ['Design and Appearance', 'Comfort', 'Size and Fit', 'Overall Satisfaction']
+            },
+            {
+                'review': "I had high hopes for this but unfortunately ended up having to return. It was very big and unflattering, kind of like a tent. I would say if you are between a L/XL definitely size down. The shipping was fast, but overall just did not like the dress.",
+                'category': categories,  # 动态的 categories 列表
+                'output': ['Size and Fit', 'Design and Appearance', 'Shipping and Packaging', 'Overall Satisfaction']
+            },
+            {
+                'review': "This dress fits so well and is very flattering! I'm 5 foot 4 and weigh 125 lbs and bought a size small. It is a little on the longer size since I am shorter but it is still so cute and perfect for weddings, grad parties, etc!",
+                'category': categories,  # 动态的 categories 列表
+                'output': ['Size and Fit', 'Design and Appearance', 'Usage Scenarios and Applicability']
+            },
+            {
+                'review': "Absolutely fell in love with this dress the first time I wore it. If you are going to be a one and done person this dress is for you. But after the first wash the stitching came out and there is now a hole in the back of the dress. It did fit true to size and wasn't too short.",
+                'category': categories,
+                'output': ['Design and Appearance', 'Size and Fit', 'Product Quality', 'Washing and Maintenance']
+            },
+            { 
+                'review': "Perfect dress for our Kentucky Derby party, and I know I’ll lowest it more than just the one time. Great to dress up with accessories or keep it as is.",
+                'category': categories,
+                'output': ['Usage Scenarios and Applicability', 'Design and Appearance', 'Overall Satisfaction']
+            },
+            {
+                'review': "It's a great summer dress! It is light and flowy. It is true to size and comfortable! The material is polyester and it just didn't feel like great quality. I took a star off because material seems a little cheap but other than that it's a good buy.",
+                'category': categories,
+                'output': ['Usage Scenarios and Applicability', 'Size and Fit', 'Comfort', 'Product Quality', 'Overall Satisfaction']
+            },
+            { 
+                'review': "Good quality dress, sewn very well. Purchased in my proper size and it fit really well. I would buy from this seller again. I purchased the light blue and the color was just as expected!",
+                'category': categories,
+                'output': ['Product Quality', 'Size and Fit', 'Design and Appearance', 'Overall Satisfaction']
+            },
+            {
+                'review': "This dress is as described except for the neckline. It is a little bit higher than in the pictures. Other than that it’s exactly as I expected it to be. The material isn’t too thin and the length is perfect. The sleeve are pretty and the color is beautiful.",
+                'category': categories,
+                'output': ['Design and Appearance', 'Product Quality', 'Size and Fit']
+            },
+            {
+                'review': "I had to have a red dress for a sorority red dress gala. Polka dot, but nevertheless red. I tried four amazon dresses, and this was the cutest and nicest material. It seems like it will wash well. The medium is very generous (or did I buy the large?).",
+                'category': categories,
+                'output': ['Usage Scenarios and Applicability', 'Design and Appearance', 'Product Quality', 'Size and Fit', 'Washing and Maintenance']
+            },
+            { 
+                'review': "Such a beautiful and well made dress.  This is my 1st time ordering from this brand.  Quality is excellent.  I ordered a size Small.  I am a 36C  and on the curvy side and fit was just right.  A bigger chest would not fit properly.  I can't wait to order more dresses from this brand.",
+                'category': categories,
+                'output': ['Product Quality', 'Size and Fit', 'Brand and Customer Service', 'Overall Satisfaction']
+            },
+            {
+                'review': "Very clean product. The fabric, craftsmanship, and underneath slip are all thick and very well made. No cheap materials, no messy stitching, no misalignments. Looks and feels like a dress you could easily pay more money for, at a small chic boutique by the beach...",
+                'category': categories,
+                'output': ['Product Quality', 'Design and Appearance', 'Price and Value', 'Overall Satisfaction']
+            },
+            {
+                'review': "The material is Soft and flows well, no stretch but due to the style stretch is not really needed if you order the proper size. Fit as expected and the color slightly more teal than the picture shows. Merchant delivered what was advertised and I am happy that I ordered.",
+                'category': categories,
+                'output': ['Product Quality', 'Size and Fit', 'Design and Appearance', 'Brand and Customer Service', 'Overall Satisfaction']
+            }
+        ]
+
+        return classification_examples
+
+
+
 
     def create_sentiment_prompt(self, review, predicted_categories, examples=None):
         """
@@ -710,6 +843,7 @@ class PromptTuning(ScriptBase):
             "You do not need to repeat any part of the input. Just output the categories and their corresponding sentiments in the format:\n"
             "- Category: Sentiment"
             "\n\nIMPORTANT: Only analyze the sentiment of categories listed. Do not add new categories or omit any of the given categories."
+            "\n\nSpecial note: If the review contains descriptions like 'thin' (e.g., 'shorts is thin,' 'the material is thin'), this generally indicates a Negative sentiment for the Product Quality category."
         )
         
         if examples:
@@ -722,6 +856,38 @@ class PromptTuning(ScriptBase):
         prompt += f"\n\nNow, analyze the sentiment for the following review:\nReview: \"{review}\"\nCategories: {', '.join(predicted_categories)}\nOutput:"
         
         return prompt
+
+    def create_sentiment_prompt_v3(self, review, predicted_categories, examples=None):
+        """
+        Generates a sentiment analysis prompt guiding the model to analyze specified categories.
+
+        Args:
+            review (str): The product review to analyze.
+            predicted_categories (list): The list of categories to analyze.
+            examples (list of dict, optional): A list of example dictionaries with 'review', 'categories', and 'output' keys.
+
+        Returns:
+            str: The generated prompt string.
+        """
+        prompt = (
+            "Given the product review and its relevant categories, analyze the sentiment (Positive, Negative, or Neutral) for the each categories listed. The categories may vary for each review. Do not add new categories or omit any provided categories."
+            "\n\nIMPORTANT: If the review contains terms like 'thin', 'cheap feel', 'flimsy', 'poor quality', 'scratchy' or other similar descriptions, especially related to the category of product quality, assign a Negative sentiment for that category."
+            "\n\nFor each listed category, output the category name and its sentiment in the following format:\n"
+            "- Category: Sentiment"
+            # "\n\nIMPORTANT: Only analyze the sentiment of categories listed. Do not add new categories or omit any of the given categories."
+        )
+        
+        if examples:
+            prompt += "\n\nHere are some examples:"
+            for idx, example in enumerate(examples, 1):
+                prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['categories'])}\nOutput:"
+                for category, sentiment in example['output'].items():
+                    prompt += f"\n- {category}: {sentiment}"
+        
+        prompt += f"\n\nNow, analyze the sentiment for the following review:\nReview: \"{review}\"\nCategories: {', '.join(predicted_categories)}\nOutput:"
+        
+        return prompt
+
 
 
     def sentiment_examples(self):
@@ -1013,6 +1179,143 @@ class PromptTuning(ScriptBase):
                     'Design and Appearance': 'Positive',
                     'Shipping and Packaging': 'Positive',
                     'Overall Satisfaction': 'Positive'
+                }
+            },
+            {
+                'review': "I had to have a red dress for a sorority red dress gala. Polka dot, but nevertheless red. I tried four amazon dresses, and this was the cutest and nicest material. It seems like it will wash well. The medium is very generous (or did I buy the large?).",
+                'categories': ['Usage Scenarios and Applicability', 'Design and Appearance', 'Product Quality', 'Size and Fit', 'Washing and Maintenance'],
+                'output': {
+                    'Usage Scenarios and Applicability': 'Positive',
+                    'Design and Appearance': 'Positive',
+                    'Product Quality': 'Positive',
+                    'Size and Fit': 'Neutral',
+                    'Washing and Maintenance': 'Positive'
+                }
+            },
+            {
+                'review': "Such a beautiful and well made dress.  This is my 1st time ordering from this brand.  Quality is excellent.  I ordered a size Small.  I am a 36C  and on the curvy side and fit was just right.  A bigger chest would not fit properly.  I can't wait to order more dresses from this brand.",
+                'categories': ['Product Quality', 'Size and Fit', 'Brand and Customer Service', 'Overall Satisfaction'],
+                'output': { 
+                    'Product Quality': 'Positive',
+                    'Size and Fit': 'Positive',
+                    'Brand and Customer ': 'Positive',
+                    'Overall Satisfaction': 'Positive'
+                }
+            },
+            {
+                'review': "Very clean product. The fabric, craftsmanship, and underneath slip are all thick and very well made. No cheap materials, no messy stitching, no misalignments. Looks and feels like a dress you could easily pay more money for, at a small chic boutique by the beach...",
+                'categories': ['Product Quality', 'Design and Appearance', 'Price and Value', 'Overall Satisfaction'],
+                'output': {
+                    'Product Quality': 'Positive',
+                    'Design and Appearance': 'Positive',
+                    'Price and Value': 'Positive',
+                    'Overall Satisfaction': 'Positive'
+                }
+            },
+            { 
+                'review': "The material is soft and flows well, no stretch but due to the style stretch is not really needed if you order the proper size. Fit as expected and the color slightly more teal than the picture shows. Merchant delivered what was advertised and I am happy that I ordered.",
+                'categories': ['Product Quality', 'Size and Fit', 'Design and Appearance', 'Brand and Customer Service', 'Overall Satisfaction'],
+                'output': {
+                    'Product Quality': 'Positive',
+                    'Size and Fit': 'Positive',
+                    'Design and Appearance': 'Positive',
+                    'Brand and Customer Service': 'Positive',
+                    'Overall Satisfaction': 'Positive'
+                }
+            }
+        ]
+        return examples
+
+    def sentiment_examples_v3(self):
+        examples = [
+            {
+                'review': "This is one of those rare Allegra dresses I have bought that fits perfectly and looks great. My only complaint is that the description states there is a self-tie sash, and the dress I received did not have a sash at all. I am still giving the product five stars because I think the price/quality ratio is excellent. I have ordered a number of Allegra items and returned most because they didn't fit properly. I've also received Allegra dresses with major quality control issues (kind of what you would expect at this price point) in the past. This particular dress is perfect, and I am very happy with it. Note: I am 5' 3\", and the hem hits right at my knee.",
+                'categories': ['Size and Fit', 'Design and Appearance', 'Product Quality', 'Price and Value', 'Overall Satisfaction', 'Brand and Customer Service'],
+                'output': {
+                    'Size and Fit': 'Positive',
+                    'Design and Appearance': 'Positive',
+                    'Product Quality': 'Neutral',
+                    'Price and Value': 'Positive',
+                    'Overall Satisfaction': 'Positive',
+                    'Brand and Customer Service': 'Neutral'
+                }
+            },
+            {
+                'review': "This dress was pretty bulky and not so flowy looking like in the photos. I felt uncomfortable in it. Didn't wear it for long. Even with the tie backs it was just too big for me. Too much fabric.",
+                'categories': ['Design and Appearance', 'Comfort', 'Size and Fit', 'Overall Satisfaction'],
+                'output': {
+                    'Design and Appearance': 'Negative',
+                    'Comfort': 'Negative',
+                    'Size and Fit': 'Negative',
+                    'Overall Satisfaction': 'Negative'
+                }
+            },
+            {
+                'review': "I had high hopes for this but unfortunately ended up having to return. It was very big and unflattering, kind of like a tent. I would say if you are between a L/XL definitely size down. The shipping was fast, but overall just did not like the dress.",
+                'categories': ['Size and Fit', 'Design and Appearance', 'Shipping and Packaging', 'Overall Satisfaction'],
+                'output': {
+                    'Size and Fit': 'Negative',
+                    'Design and Appearance': 'Negative',
+                    'Shipping and Packaging': 'Positive',
+                    'Overall Satisfaction': 'Negative'
+                }
+            },
+            {
+                'review': "This dress fits so well and is very flattering! I'm 5 foot 4 and weigh 125 lbs and bought a size small. It is a little on the longer size since I am shorter but it is still so cute and perfect for weddings, grad parties, etc!",
+                'categories': ['Size and Fit', 'Design and Appearance', 'Usage Scenarios and Applicability'],
+                'output': {
+                    'Size and Fit': 'Positive',
+                    'Design and Appearance': 'Positive',
+                    'Usage Scenarios and Applicability': 'Positive'
+                }
+            },
+            {
+                'review': "Absolutely fell in love with this dress the first time I wore it.  If you are going to be a one and done person this dress is for you. But after the first wash the stitching came out and there is now a hole in the back of the dress.  It did fit true to size and wasn't too short.",
+                'categories': ['Design and Appearance', 'Size and Fit', 'Product Quality', 'Washing and Maintenance'],
+                'output': {
+                    'Design and Appearance': 'Positive',
+                    'Size and Fit': 'Positive',
+                    'Product Quality': 'Negative',
+                    'Washing and Maintenance': 'Negative'
+                }
+            },
+            {
+                'review': "Perfect dress for our Kentucky Derby party, and I know I’ll lowest it more than just the one time. Great to dress up with accessories or keep it as is.",
+                'categories': ['Usage Scenarios and Applicability', 'Design and Appearance', 'Overall Satisfaction'],
+                'output': { 
+                    'Usage Scenarios and Applicability': 'Positive',
+                    'Design and Appearance': 'Positive',
+                    'Overall Satisfaction': 'Positive'
+                }
+            },
+            {
+                'review': "It's a great summer dress! It is light and flowy. It is true to size and comfortable! The material is polyester and it just didn't feel like great quality. I took a star off because material seems a little cheap but other than that it's a good buy.",
+                'categories': ['Usage Scenarios and Applicability', 'Size and Fit', 'Comfort', 'Product Quality', 'Overall Satisfaction'],
+                'output': {
+                    'Usage Scenarios and Applicability': 'Positive',
+                    'Size and Fit': 'Positive',
+                    'Comfort': 'Positive',
+                    'Product Quality': 'Neutral',
+                    'Overall Satisfaction': 'Positive'
+                }
+            },
+            {
+                'review': "Good quality dress, sewn very well. Purchased in my proper size and it fit really well. I would buy from this seller again. I purchased the light blue and the color was just as expected!",
+                'categories': ['Product Quality', 'Size and Fit', 'Design and Appearance', 'Overall Satisfaction'],
+                'output': { 
+                    'Product Quality': 'Positive',
+                    'Size and Fit': 'Positive',
+                    'Design and Appearance': 'Positive',
+                    'Overall Satisfaction': 'Positive'
+                }
+            },
+            {
+                'review': "This dress is as described except for the neckline. It is a little bit higher than in the pictures. Other than that it’s exactly as I expected it to be. The material isn’t too thin and the length is perfect. The sleeve are pretty and the color is beautiful.",
+                'categories': ['Design and Appearance', 'Product Quality', 'Size and Fit'],
+                'output': { 
+                    'Design and Appearance': 'Positive',
+                    'Product Quality': 'Positive',
+                    'Size and Fit': 'Neutral'
                 }
             },
             {

@@ -67,7 +67,7 @@ class MetricsEvaluation(ScriptBase):
         self.info(f"Overall_accuracy of gpt is {overall_accuracy_gpt}.\n")
         self.info("End")        
     
-    def calculate_metrics_v2(self, ground_truth_file_path, llm_output_file_path):
+    def calculate_metrics_v2(self, ground_truth_file_path, llm_output_file_path, save_path):
 
         # 获取ground_truth的结果
         df_ground_truth = pd.read_excel(ground_truth_file_path, sheet_name="Sheet1")
@@ -79,6 +79,14 @@ class MetricsEvaluation(ScriptBase):
         
         # 获取 大模型 (llama) 的结果
         df_llm_output = pd.read_excel(llm_output_file_path, sheet_name="Sheet1")
+
+        # 输出detail of comparison
+        comparison_result_list = []
+        for index, row in df_ground_truth.iterrows():
+            new_df = pd.concat([row, df_llm_output.iloc[index,:]], axis=1).T.reset_index(drop=True)
+            comparison_result_list.append(new_df)
+        comparison_result_df = pd.concat(comparison_result_list, axis=0, ignore_index=True)
+        self.save_result(comparison_result_df, save_path)
 
         # 将 NaN 填为 0，将 Positive, Negative, Neutral 分别变成为 1,2,3
         df_llm_output_filled_0 = df_llm_output.fillna(0) 
@@ -107,17 +115,26 @@ class MetricsEvaluation(ScriptBase):
 
         self.info("End")        
     
+    def save_result(self, result_df, save_path):
+        if save_path.endswith('xlsx'):
+            result_df.to_excel(save_path, index=False)
+        elif save_path.endswith('csv'):
+            result_df.to_csv(save_path, index=False)
+
 if __name__ == "__main__":
 
     obj = MetricsEvaluation()
     ground_truth_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/test_dataset_for_text_sentiment.xlsx'
     gpt_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/gpt4_result_Mr_Xv_v2.xlsx'
-    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v2/llama_outputs_two_medium_examples_v2.xlsx'
+    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v7/llama_outputs_two_medium_examples_v7.xlsx'
     
     qwen_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_qwen2.5/qwen2.5.xlsx'
     gpt4o_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_gpt4o/result_of_gpt4o_v2.xlsx'
 
+    save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v7/comparison_results_v7.xlsx'
+    
     obj.calculate_metrics_v2(
         ground_truth_file_path=ground_truth_file_path,
-        llm_output_file_path=qwen_file_path
+        llm_output_file_path=llama_output_file_path,
+        save_path=save_path
     )

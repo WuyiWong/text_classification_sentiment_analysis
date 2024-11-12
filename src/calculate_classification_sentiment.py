@@ -120,8 +120,8 @@ class LlamaTextClassificationSentiment(ScriptBase):
 
 
         # 在循环外生成分类和情感分析的示例
-        classification_examples = prompt_tuning.classification_examples_medium(classification_label)
-        sentiment_examples = prompt_tuning.sentiment_examples_v2()  # TODO 修改prompt examples
+        classification_examples = prompt_tuning.classification_examples_brief(classification_label)
+        sentiment_examples = prompt_tuning.sentiment_examples_v3()  # TODO 修改prompt examples
 
         sentiment_classification_list = []
         # 遍历数据集中的每条评论，生成对应的 prompt 并进行推理
@@ -129,7 +129,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
             review = row['review_text']
             
             # Step 1: 分类 (调用 create_classification_prompt 函数)
-            classification_prompt = prompt_tuning.create_classification_prompt_v3(
+            classification_prompt = prompt_tuning.create_classification_prompt_v6(
                 review=review,
                 categories=classification_label,
                 classification_examples=classification_examples
@@ -145,7 +145,8 @@ class LlamaTextClassificationSentiment(ScriptBase):
             # 使用 LLaMA 3.2 生成输出
             classification_outputs = self.model.generate(
                 **inputs_classification, 
-                max_new_tokens=64, 
+                max_new_tokens=128, 
+                min_new_tokens=64,
                 temperature=0.2, # 0.1
                 top_p=0.6,
                 eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id
@@ -160,14 +161,30 @@ class LlamaTextClassificationSentiment(ScriptBase):
             # 提取分类结果
             predicted_categories = parse_output.extract_categories(decoded_classification_output, classification_label)
 
-            # 如果未识别出任何类别，跳过情感分析
+            # 如果未识别出任何类别，再次generate一次
             if not predicted_categories:
-                # self.info(f"Review {index + 1} Classification Result:\n {decoded_classification_output}\n")
-                self.info(f"Review {index + 1} Sentiment Result:\n No categories identified.\n")
-                continue
+                classification_outputs = self.model.generate(
+                **inputs_classification, 
+                max_new_tokens=128, 
+                min_new_tokens=64,
+                temperature=0.5, # 0.1
+                top_p=0.6, # 0.7
+                eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id
+                )
+
+                classification_generated_tokens = classification_outputs[0][input_length_classification: ].to('cpu')  # # 解码需要移回CPU
+                
+                decoded_classification_output = self.tokenizer.decode(classification_generated_tokens, skip_special_tokens=True)
+
+                predicted_categories = parse_output.extract_categories(decoded_classification_output, classification_label)
+                
+                if not predicted_categories:
+                    predicted_categories.append('Overall Satisfaction')
+                    self.info(f"After 2 rounds of model generation, review {index + 1} still do not have results of classified categories, please check this review {index + 1} in detail!\n")
+                    # continue
 
             # Step 2: 情感分析 (调用 create_sentiment_prompt 函数)
-            sentiment_prompt = prompt_tuning.create_sentiment_prompt_v2(
+            sentiment_prompt = prompt_tuning.create_sentiment_prompt_v3(
                 review=review,
                 predicted_categories=predicted_categories,
                 examples=sentiment_examples
@@ -183,6 +200,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
             sentiment_outputs = self.model.generate(
                 **inputs_sentiment, 
                 max_new_tokens=256, 
+                min_new_tokens=64,
                 temperature=0.2, # 0.3
                 top_p=0.8, # 0.7
                 eos_token_id=self.tokenizer.eos_token_id, 
@@ -214,6 +232,10 @@ class LlamaTextClassificationSentiment(ScriptBase):
             # self.info(f"Review {index + 1} Classification Result:\n {decoded_classification_output}\n")
             # self.info(f"Review {index + 1} Sentiment Result:\n {decoded_sentiment_output}\n")
         df_result = pd.DataFrame(sentiment_classification_list)
+        need_to_be_insert = df_result['id']
+        df_result.drop(['id'], axis=1, inplace=True)
+        df_result.insert(0, need_to_be_insert.name, need_to_be_insert)
+        									
         return df_result
 
 if __name__ == '__main__':
@@ -245,10 +267,10 @@ if __name__ == '__main__':
             df_llama_sentiments_classfication = llama_text_classification_sentiment.generate_classification_and_sentiment_one_step(df_review_text, classification_label)
             llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication, save_path)
         elif prompt_type == "two":
-            save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two.xlsx'
+            save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v4.xlsx'
             df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_two_step(df_review_text, classification_label)
             llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)
     if len(sys.argv) == 1:
-        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v3.xlsx'
+        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v7.xlsx'
         df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_two_step(df_review_text, classification_label)
         llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)
