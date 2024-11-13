@@ -71,7 +71,7 @@ class MetricsEvaluation(ScriptBase):
 
         # 获取ground_truth的结果
         df_ground_truth = pd.read_excel(ground_truth_file_path, sheet_name="Sheet1")
-        df_ground_truth.drop(['Unnamed: 1', 'Unnamed: 3', '中文翻译'], axis=1, inplace=True)
+        df_ground_truth.drop(['中文翻译'], axis=1, inplace=True)
         
         # 将 NaN 填为 0，将 Positive, Negative, Neutral 分别变成为 1,2,3
         df_ground_truth_filled_0 = df_ground_truth.fillna(0) 
@@ -125,16 +125,16 @@ if __name__ == "__main__":
 
     obj = MetricsEvaluation()
     ground_truth_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/test_dataset_for_text_sentiment.xlsx'
-    gpt_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/gpt4_result_Mr_Xv_v2.xlsx'
-    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v7/llama_outputs_two_medium_examples_v7.xlsx'
+    gpt4_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/gpt4_result_Mr_Xv_v2.xlsx'
+    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v6/llama_outputs_two_medium_examples_v6_hyper.xlsx'
     
     qwen_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_qwen2.5/qwen2.5.xlsx'
     gpt4o_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_gpt4o/result_of_gpt4o_v2.xlsx'
 
-    save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v7/comparison_results_v7.xlsx'
+    save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/comparison_results_gpt4.xlsx'
     
     obj.calculate_metrics_v2(
         ground_truth_file_path=ground_truth_file_path,
-        llm_output_file_path=llama_output_file_path,
+        llm_output_file_path=gpt4_output_file_path,
         save_path=save_path
     )

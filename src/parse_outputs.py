@@ -27,9 +27,9 @@ class ParseOutput(ScriptBase):
 
         # 解析 decoded_output
         lines = decoded_output.strip().split('\n')
-        index = 0 # 初始化index 用来作为正确输出的结尾index
+        # index = 0 # 初始化index 用来作为正确输出的结尾index
         for i, element in enumerate(lines):
-            if 'Review' in element:
+            if '-' not in element:
                 index = i
                 break
         lines = lines[: index]
@@ -53,7 +53,7 @@ class ParseOutput(ScriptBase):
         
         index = 0 # 初始化index 用来作为正确输出的结尾index
         for i, element in enumerate(lines):
-            if 'Review' in element:
+            if '-' not in element:
                 index = i
                 break
         lines = lines[: index]

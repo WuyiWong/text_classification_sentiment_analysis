@@ -415,7 +415,7 @@ class PromptTuning(ScriptBase):
         """)
         return examples
 
-    def create_classification_prompt(self, review, categories, examples=None):
+    def create_classification_prompt_deprecated(self, review, categories, examples=None):
         prompt = (
             f"Classify the following product review into one or more of the following categories: {', '.join(categories)}.\n"
             "You do not need to repeat any part of the input. Just output the categories that apply in the format\n"
@@ -430,7 +430,7 @@ class PromptTuning(ScriptBase):
         return prompt
     
     
-    def create_classification_prompt_v2(self, review, categories, classification_examples=None):
+    def create_classification_prompt_v2_deprecated(self, review, categories, classification_examples=None):
         prompt = (
             f"Classify the following product review into one or more of the following categories: {', '.join(categories)}.\n"
             "You do not need to repeat any part of the input. Just output the categories that apply in the format\n"
@@ -484,7 +484,7 @@ class PromptTuning(ScriptBase):
         prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
         return prompt
 
-    def create_classification_prompt_v5(self, review, categories, classification_examples=None):
+    def create_classification_prompt_v5_deprecated(self, review, categories, classification_examples=None):
         prompt = (
             f"Classify the following product review into one or more categories: {', '.join(categories)}."
             "\n\nFocus especially on:"
@@ -503,7 +503,7 @@ class PromptTuning(ScriptBase):
         prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
         return prompt
 
-    def create_classification_prompt_v6(self, review, categories, classification_examples=None):
+    def create_classification_prompt_v6_deprecated(self, review, categories, classification_examples=None):
         prompt = (
             f"Classify the following product review into one or more categories: {', '.join(categories)}."
             "\n\nFocus especially on:"
@@ -522,6 +522,44 @@ class PromptTuning(ScriptBase):
         prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
         return prompt
 
+    def create_classification_prompt_v7(self, review, categories, classification_examples=None):
+        prompt = (
+            f"Classify the following product review into one or more categories: {', '.join(categories)}."
+            "\n\nFocus especially on the categories Product Quality and Size and Fit, as these are critical for evaluating the product's material and fit experience."
+            "\n\n1. Prioritizing Product Quality if 'fabric', 'quality', 'material' 'thin', 'cheap feel', 'flimsy', 'poor quality', 'scratchy' or other similar descriptions(synonyms) appear."
+            "\n2. Prioritize Size and Fit if words like 'size', 'fit', 'too big', 'too small', 'true to size', 'tight', 'loose', 'snug', or other synonyms appear."
+            "\n\nIf the review does not contain clear indicators for a category, avoid adding unrelated categories. Only assign categories that have direct indicators."
+            "\n\nOutput format:\n- Category"
+        )
+        if classification_examples:
+            prompt += "\n\nHere are some examples, with particular attention given to comments reflecting Product Quality, Size and Fit, and Overall Satisfaction:"
+            for idx, example in enumerate(classification_examples, start=1):
+                prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['category'])}\nOutput:"
+                for category in example['output']:
+                    prompt += f"\n- {category}"
+        
+        prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
+        return prompt
+
+    def create_classification_prompt_v8(self, review, categories, classification_examples=None):
+        prompt = (
+            f"Classify the following product review into one or more categories: {', '.join(categories)}."
+            "\n\nFocus especially on the categories Product Quality and Size and Fit, as these are critical for evaluating the product's material and fit experience."
+            "\n\n1. Prioritizing Product Quality if 'fabric', 'quality', 'material' 'thin', 'cheap feel', 'flimsy', 'poor quality', 'scratchy' or other similar descriptions(synonyms) appear."
+            "\n2. Prioritize Size and Fit if words like 'size', 'fit', 'too big', 'too small', 'true to size', 'tight', 'loose', 'snug', or other synonyms appear."
+            "\n3. Classify the category of Design and Appearance if 'cute', 'this is so cute' or other similar descriptions(synonyms) appear."
+            "\n\nIf the review does not contain clear indicators for a category, avoid adding unrelated categories. Only assign categories that have direct indicators."
+            "\n\nOutput format:\n- Category"
+        )
+        if classification_examples:
+            prompt += "\n\nHere are some examples, with particular attention given to comments reflecting Product Quality, Size and Fit, and Overall Satisfaction:"
+            for idx, example in enumerate(classification_examples, start=1):
+                prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['category'])}\nOutput:"
+                for category in example['output']:
+                    prompt += f"\n- {category}"
+        
+        prompt += f"\n\nNow, classify the following review and provide the category only:\nReview: '{review}'\nCategories: {', '.join(categories)}\nOutput:"
+        return prompt
 
 
 
@@ -843,7 +881,6 @@ class PromptTuning(ScriptBase):
             "You do not need to repeat any part of the input. Just output the categories and their corresponding sentiments in the format:\n"
             "- Category: Sentiment"
             "\n\nIMPORTANT: Only analyze the sentiment of categories listed. Do not add new categories or omit any of the given categories."
-            "\n\nSpecial note: If the review contains descriptions like 'thin' (e.g., 'shorts is thin,' 'the material is thin'), this generally indicates a Negative sentiment for the Product Quality category."
         )
         
         if examples:
@@ -888,9 +925,78 @@ class PromptTuning(ScriptBase):
         
         return prompt
 
+    def create_sentiment_prompt_v4(self, review, predicted_categories, examples=None):
+        """
+        Generates a sentiment analysis prompt guiding the model to analyze specified categories.
+
+        Args:
+            review (str): The product review to analyze.
+            predicted_categories (list): The list of categories to analyze.
+            examples (list of dict, optional): A list of example dictionaries with 'review', 'categories', and 'output' keys.
+
+        Returns:
+            str: The generated prompt string.
+        """
+        prompt = (
+            "Given the product review and its relevant categories, analyze the sentiment (Positive, Negative, or Neutral) for the each categories listed. The categories may vary for each review. Do not add new categories or omit any provided categories."
+            "\n\nIMPORTANT:"
+            "\n1. If the review contains terms like 'thin', 'cheap feel', 'flimsy', 'poor quality', 'scratchy' or other similar descriptions, especially related to Product Quality, assign a Negative sentiment for that category."
+            "\n2. For Size and Fit, if terms such as 'too big', 'too small', 'tight', 'loose', 'snug', or 'true to size' are present, evaluate the sentiment based on whether the fit met expectations (e.g., 'too big' or 'too small' typically indicate Negative sentiment, while 'true to size' indicates Positive sentiment)."
+            "\n\nIf a category lacks clear indicators of sentiment, assign a Neutral sentiment for that category."
+            "\n\nOutput format:"            
+            "\n- Category: Sentiment"
+            # "\n\nIMPORTANT: Only analyze the sentiment of categories listed. Do not add new categories or omit any of the given categories."
+        )
+        
+        if examples:
+            prompt += "\n\nHere are some examples:"
+            for idx, example in enumerate(examples, 1):
+                prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['categories'])}\nOutput:"
+                for category, sentiment in example['output'].items():
+                    prompt += f"\n- {category}: {sentiment}"
+        
+        prompt += f"\n\nNow, analyze the sentiment for the following review:\nReview: \"{review}\"\nCategories: {', '.join(predicted_categories)}\nOutput:"
+        
+        return prompt
+
+    def create_sentiment_prompt_v5(self, review, predicted_categories, examples=None):
+        """
+        Generates a sentiment analysis prompt guiding the model to analyze specified categories.
+
+        Args:
+            review (str): The product review to analyze.
+            predicted_categories (list): The list of categories to analyze.
+            examples (list of dict, optional): A list of example dictionaries with 'review', 'categories', and 'output' keys.
+
+        Returns:
+            str: The generated prompt string.
+        """
+        prompt = (
+            "Given the product review and its relevant categories, analyze the sentiment (Positive, Negative, or Neutral) for the each categories listed. The categories may vary for each review. Do not add new categories or omit any provided categories."
+            "\n\nIMPORTANT:"
+            "\n1. If the review contains terms like 'thin', 'too thin', 'thinner', 'cheap feel', 'flimsy', 'poor quality', 'scratchy' or other similar descriptions, especially related to Product Quality, assign a Negative sentiment for that category."
+            "\n2. For Product Quality, if terms such as 'nice', 'so nice', 'material is nice', or 'the material is so nice' are present, indicate Positive sentiment for that category."
+            "\n3. For Size and Fit, if terms such as 'too big', 'too small', 'tight', 'loose', 'snug', 'fit perfect', or 'true to size' are present, evaluate the sentiment based on whether the fit met expectations (e.g., 'too big' or 'too small' typically indicate Negative sentiment, while 'true to size' or 'fit perfect' indicates Positive sentiment)."
+            "\n\nIf a category lacks clear indicators of sentiment, assign a Neutral sentiment for that category."
+            "\n\nOutput format:"            
+            "\n- Category: Sentiment"
+            # "\n\nIMPORTANT: Only analyze the sentiment of categories listed. Do not add new categories or omit any of the given categories."
+        )
+        
+        if examples:
+            prompt += "\n\nHere are some examples:"
+            for idx, example in enumerate(examples, 1):
+                prompt += f"\n\nExample {idx}:\nReview: \"{example['review']}\"\nCategories: {', '.join(example['categories'])}\nOutput:"
+                for category, sentiment in example['output'].items():
+                    prompt += f"\n- {category}: {sentiment}"
+        
+        prompt += f"\n\nNow, analyze the sentiment for the following review:\nReview: \"{review}\"\nCategories: {', '.join(predicted_categories)}\nOutput:"
+        
+        return prompt
 
 
-    def sentiment_examples(self):
+
+    def sentiment_examples_deprecated(self):
         
         examples = textwrap.dedent("""
         Example 1: 
@@ -1070,7 +1176,7 @@ class PromptTuning(ScriptBase):
         """)
         return examples
     
-    def sentiment_examples_v2(self):
+    def sentiment_examples_medium(self):
         examples = [
             {
                 'review': "This is one of those rare Allegra dresses I have bought that fits perfectly and looks great. My only complaint is that the description states there is a self-tie sash, and the dress I received did not have a sash at all. I am still giving the product five stars because I think the price/quality ratio is excellent. I have ordered a number of Allegra items and returned most because they didn't fit properly. I've also received Allegra dresses with major quality control issues (kind of what you would expect at this price point) in the past. This particular dress is perfect, and I am very happy with it. Note: I am 5' 3\", and the hem hits right at my knee.",
@@ -1226,7 +1332,7 @@ class PromptTuning(ScriptBase):
         ]
         return examples
 
-    def sentiment_examples_v3(self):
+    def sentiment_examples_brief(self):
         examples = [
             {
                 'review': "This is one of those rare Allegra dresses I have bought that fits perfectly and looks great. My only complaint is that the description states there is a self-tie sash, and the dress I received did not have a sash at all. I am still giving the product five stars because I think the price/quality ratio is excellent. I have ordered a number of Allegra items and returned most because they didn't fit properly. I've also received Allegra dresses with major quality control issues (kind of what you would expect at this price point) in the past. This particular dress is perfect, and I am very happy with it. Note: I am 5' 3\", and the hem hits right at my knee.",

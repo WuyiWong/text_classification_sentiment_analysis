@@ -28,7 +28,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
         self.tokenizer = tokenizer
         self.data_prep = data_prep
 
-    def generate_classification_and_sentiment_one_step(self, df_review, classification_label):
+    def generate_classification_and_sentiment_one_step_deprecated(self, df_review, classification_label):
         
         
         # 使用函数生成 prompt
@@ -116,20 +116,18 @@ class LlamaTextClassificationSentiment(ScriptBase):
         prompt_tuning = PromptTuning()
         parse_output = ParseOutput()
         
-        # 过滤出测试reviews
-
-
         # 在循环外生成分类和情感分析的示例
-        classification_examples = prompt_tuning.classification_examples_brief(classification_label)
-        sentiment_examples = prompt_tuning.sentiment_examples_v3()  # TODO 修改prompt examples
+        classification_examples = prompt_tuning.classification_examples_medium(classification_label)
+        sentiment_examples = prompt_tuning.sentiment_examples_medium()  # 修改prompt examples
 
         sentiment_classification_list = []
         # 遍历数据集中的每条评论，生成对应的 prompt 并进行推理
         for index, row in df_review.iterrows():
             review = row['review_text']
             
+
             # Step 1: 分类 (调用 create_classification_prompt 函数)
-            classification_prompt = prompt_tuning.create_classification_prompt_v6(
+            classification_prompt = prompt_tuning.create_classification_prompt_v8(
                 review=review,
                 categories=classification_label,
                 classification_examples=classification_examples
@@ -148,7 +146,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
                 max_new_tokens=128, 
                 min_new_tokens=64,
                 temperature=0.2, # 0.1
-                top_p=0.6,
+                top_p=0.85,
                 eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id
             )
             
@@ -167,8 +165,8 @@ class LlamaTextClassificationSentiment(ScriptBase):
                 **inputs_classification, 
                 max_new_tokens=128, 
                 min_new_tokens=64,
-                temperature=0.5, # 0.1
-                top_p=0.6, # 0.7
+                temperature=0.4, # 0.1
+                top_p=0.8, # 0.7
                 eos_token_id=self.tokenizer.eos_token_id, pad_token_id=self.tokenizer.eos_token_id
                 )
 
@@ -184,7 +182,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
                     # continue
 
             # Step 2: 情感分析 (调用 create_sentiment_prompt 函数)
-            sentiment_prompt = prompt_tuning.create_sentiment_prompt_v3(
+            sentiment_prompt = prompt_tuning.create_sentiment_prompt_v5(
                 review=review,
                 predicted_categories=predicted_categories,
                 examples=sentiment_examples
@@ -202,7 +200,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
                 max_new_tokens=256, 
                 min_new_tokens=64,
                 temperature=0.2, # 0.3
-                top_p=0.8, # 0.7
+                top_p=0.9, # 0.7
                 eos_token_id=self.tokenizer.eos_token_id, 
                 pad_token_id=self.tokenizer.eos_token_id
             )
@@ -240,20 +238,21 @@ class LlamaTextClassificationSentiment(ScriptBase):
 
 if __name__ == '__main__':
     # 加载 LLaMA 3.2 模型和分词器
-    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B-Instruct", trust_remote_code=True)
+    model_id_3b = "/home/featurize/data/Llama-3.2-3B-Instruct"
+    model_id_8b = "/home/featurize/data/Llama-3.1-8B-Instruct"
+    tokenizer = AutoTokenizer.from_pretrained(model_id_3b, trust_remote_code=True)
     # tokenizer = AutoTokenizer.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-3B-Instruct")
 
-    model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct", device_map="auto", torch_dtype=torch.bfloat16, trust_remote_code=True).eval()  # TODO 在GPU上推理时打开
+    model = AutoModelForCausalLM.from_pretrained(model_id_3b, device_map="auto", torch_dtype=torch.bfloat16, trust_remote_code=True).eval()  # TODO 在GPU上推理时打开
     # model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B-Instruct").eval()
 
     # model = AutoModelForCausalLM.from_pretrained("/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/Llama-3.2-3B-Instruct")
     # 加载数据集
     data_prep = DataPrep()
     file_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/input/schema分类标签结果_MKT_AK数据.xlsx'
-    test_set_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/metrics_evaluation/test_dataset_for_text_sentiment.xlsx'
+    # test_set_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/metrics_evaluation/test_dataset_for_text_sentiment.xlsx'
+    test_set_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/metrics_evaluation/问题reviews.xlsx'
     
-
-
     df_review_text, classification_label = data_prep.load_data(file_path, test_set_path)
     # df_review_text = data_prep.sentence_embedding(df_review_text) # 暂时不将sentence embedding的结果直接作为llama的输入来使用
 
@@ -271,6 +270,6 @@ if __name__ == '__main__':
             df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_two_step(df_review_text, classification_label)
             llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)
     if len(sys.argv) == 1:
-        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v7.xlsx'
+        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v6_hyper.xlsx'
         df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_two_step(df_review_text, classification_label)
         llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)
