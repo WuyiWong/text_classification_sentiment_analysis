@@ -125,16 +125,17 @@ if __name__ == "__main__":
 
     obj = MetricsEvaluation()
     ground_truth_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/test_dataset_for_text_sentiment.xlsx'
-    gpt4_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/gpt4_result_Mr_Xv_v2.xlsx'
-    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v6/llama_outputs_two_medium_examples_v6_hyper.xlsx'
+    # gpt4_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/gpt4_result_Mr_Xv_v2.xlsx'
+    # llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v12/llama_outputs_two_medium_examples_v12.5_1_hyper.xlsx'
     
-    qwen_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_qwen2.5/qwen2.5.xlsx'
+    # qwen_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_qwen2.5/qwen2.5.xlsx'
     gpt4o_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_gpt4o/result_of_gpt4o_v2.xlsx'
 
-    save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/comparison_results_gpt4.xlsx'
+    # save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_prompt_v12/comparison_results_v12.5_1_hyper.xlsx'
+    save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_gpt4o/comparison_of_gpt4o_v2.xlsx'
     
     obj.calculate_metrics_v2(
         ground_truth_file_path=ground_truth_file_path,
-        llm_output_file_path=gpt4_output_file_path,
+        llm_output_file_path=gpt4o_file_path,
         save_path=save_path
     )

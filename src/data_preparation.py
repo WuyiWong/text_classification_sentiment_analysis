@@ -29,7 +29,6 @@ class DataPrep(object):
         position_index = df_mtk.columns.get_loc('review_text')
         classification_label = df_mtk.columns[position_index+1: ]
         
-        # 给 classification_label 赋值 “Others” 标签
         classification_label_list = list(classification_label)
 
         # 合并这两个 df_mtk 和 df_ak 的 review_text
