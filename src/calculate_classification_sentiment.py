@@ -56,9 +56,6 @@ class LlamaTextClassificationSentiment(ScriptBase):
         for index, row in df_review.iterrows():
             review = row['review_text']
             
-            # if row['id'] != 'R2B68HKE5111XP':
-            #     continue
-
             # Step 1: 分类 (调用 create_classification_prompt 函数)
             classification_prompt = prompt_tuning.create_classification_prompt_v7(
                 review=review,
@@ -181,7 +178,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
         
         # 在循环外生成分类和情感分析的示例
         classification_examples = prompt_tuning.classification_examples_medium(classification_label)
-        sentiment_examples = prompt_tuning.sentiment_examples_medium()  # 修改prompt examples
+        sentiment_examples = prompt_tuning.sentiment_examples_medium_v2()  # 修改prompt examples
 
         sentiment_classification_list = []
         # 遍历数据集中的每条评论，生成对应的 prompt 并进行推理
@@ -189,7 +186,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
             review = row['review_text']
             
             # Step 1: 分类 (调用 create_classification_prompt 函数)
-            classification_prompt = prompt_tuning.create_classification_prompt_v7(
+            classification_prompt = prompt_tuning.create_classification_prompt_v11(
                 review=review,
                 categories=classification_label,
                 classification_examples=classification_examples
@@ -259,7 +256,7 @@ class LlamaTextClassificationSentiment(ScriptBase):
             predicted_categories_final = prompt_tuning.character_matching(review, predicted_categories_final)
             
             # Step 2: 情感分析 (调用 create_sentiment_prompt 函数)
-            sentiment_prompt = prompt_tuning.create_sentiment_prompt_v7(
+            sentiment_prompt = prompt_tuning.create_sentiment_prompt_v9(
                 review=review,
                 predicted_categories=predicted_categories_final,
                 examples=sentiment_examples
@@ -338,7 +335,7 @@ if __name__ == '__main__':
 
     llama_text_classification_sentiment = LlamaTextClassificationSentiment(model, tokenizer, data_prep)
     
-    if len(sys.argv) == 1:
-        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v12.1_1_hyper.xlsx'
+    if len(sys.argv) == 1: 
+        save_path = '/home/featurize/work/projects/text_classification_sentiment_analysis/results/llama_outputs_two_medium_examples_v3.2_hyper.xlsx'
         df_llama_sentiments_classfication_cat = llama_text_classification_sentiment.generate_classification_and_sentiment_two_step_v2(df_review_text, classification_label)
         llama_text_classification_sentiment.save_result(df_llama_sentiments_classfication_cat, save_path)
