@@ -125,19 +125,19 @@ class MetricsEvaluation(ScriptBase):
 if __name__ == "__main__":
 
     obj = MetricsEvaluation()
-    ground_truth_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/test_dataset_for_text_sentiment_v2.xlsx'
+    ground_truth_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/AI Supply Chain/NLP/qms/metrics_evaluation/test_dataset_for_text_sentiment_v2.xlsx'
     # gpt4_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/gpt4_result_Mr_Xv_v2.xlsx'
-    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_new_labels_v3/llama_outputs_two_medium_examples_v3.2.1_hyper.xlsx'
+    llama_output_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/AI Supply Chain/NLP/qms/metrics_evaluation/result_of_JSON_format/llama_outputs_two_medium_examples_v3.2_hyper_json.xlsx'
     # business_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_business_adjustment/业务打标验证.xlsx'
 
     # qwen_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_qwen2.5/qwen2.5.xlsx'
     # gpt4o_file_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_gpt4o/result_of_gpt4o_v2.xlsx'
 
-    save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_new_labels_v3/comparison_of_llama_v3.4.xlsx'
+    save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/AI Supply Chain/NLP/qms/metrics_evaluation/result_of_JSON_format/comparison_of_llama_v3.2_json.xlsx'
     # adjust_save_path = '/Users/wangwuyi/Documents/1_Projects/UX168/NLP/qms/metrics_evaluation/result_of_business_adjustment/comparison_of_adjustment.xlsx'
     
     obj.calculate_metrics_v2(
         ground_truth_file_path=ground_truth_file_path,
         llm_output_file_path=llama_output_file_path,
-        save_path=None
+        save_path=save_path
     )
