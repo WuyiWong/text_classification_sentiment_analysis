@@ -603,6 +603,58 @@ class PromptTuning(ScriptBase):
 
         return [system_message_json, user_message_json]
 
+    def create_sentiment_prompt_v10(self, review, predicted_categories, examples=None):
+        """
+        Generates a sentiment analysis prompt in JSON format.
+
+        Args:
+            review (str): The product review to analyze.
+            predicted_categories (list): The list of categories to analyze.
+            examples (list of dict, optional): A list of example dictionaries with 'review', 'categories', and 'output' keys.
+
+        Returns:
+            dict: A JSON-formatted prompt.
+        """
+        # Define the system message with task context and instructions
+        system_message_json = {
+            "role": "system",
+            "content": {
+                "Persona": "You are a sentiment analyzer tasked with determining the sentiment (Positive, Negative, or Neutral) for specified categories based on product reviews. Follow strict guidelines for accuracy and consistency.",
+                "Instructions": [
+                    "You will be provided with a product review and a list of categories to analyze.",
+                    "For each category, analyze the sentiment based on the review content.",
+                    "Assign 'Positive' sentiment for satisfaction, approval, or good experiences. Examples include: 'love it,' 'perfect fit,' 'looks great.' Subtle positivity includes: 'fit to size,' 'just as expected,' 'comfortable and flowy.'",
+                    "Assign 'Negative' sentiment for dissatisfaction, criticism, or bad experiences.",
+                    "Assign 'Neutral' sentiment only if there are no clear positive or negative indicators for a category."
+                ],
+                "ImportantNotes": [
+                    "Only return the output strictly as a JSON object: [(CATEGORY, SENTIMENT), ...].",
+                    "Examples include: [('Fabric', 'Negative'), ('Design and Appearance', 'Positive')].",
+                    "Do not add any additional text, explanations, or variations in the format",
+                    "Use the examples below for reference."
+                ],
+                "OutputFormat": "Return the output of sentiment analysis strictly in the format: [('CATEGORY', 'SENTIMENT'), ...]. Examples include: [('Fabric', 'Negative'), ('Design and Appearance', 'Positive')].",
+                "Examples": []
+            }
+        }
+
+        user_message_json = {
+            "role": "user",
+            "content": f"Review: '{review}'\nCategories: {predicted_categories}\nOutput:"
+        }
+
+        if examples:
+            for idx, example in enumerate(examples, 1):
+                example_entry = {
+                    "Review": example["review"],
+                    "Categories": example["categories"],
+                    "Output": list(example["output"].items())
+                }
+                system_message_json['content']['Examples'].append(example_entry)
+
+        return [system_message_json, user_message_json]
+
+
 
     
     def sentiment_examples_medium(self):
